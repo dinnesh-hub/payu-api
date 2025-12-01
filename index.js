@@ -7,6 +7,18 @@ const PORT = 4000;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+// Test Route
+app.get("/", (req, res) => {
+    res.send(`
+        <html>
+        <body>
+            <h1>Express Server Running</h1>
+            <p>Server is listening on port ${PORT}.</p>
+        </body>
+        </html>
+    `);
+});
+
 // SUCCESS URL
 app.post("/payment/success", (req, res) => {
     console.log("=== PAYU SUCCESS CALLBACK ===");
