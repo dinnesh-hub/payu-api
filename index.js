@@ -1,14 +1,18 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const cors = require("cors"); // <-- import cors
 const app = express();
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
+
+// Enable CORS for all origins (you can restrict later if needed)
+app.use(cors());
 
 // PayU sends x-www-form-urlencoded data
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 // Test Route
-app.get("/", (req, res) => {
+app.get("/test", (req, res) => {
     res.send(`
         <html>
         <body>
