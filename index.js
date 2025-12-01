@@ -1,13 +1,13 @@
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors"); // <-- import cors
 const crypto = require("crypto");
-const { PAYU_KEY, PAYU_SALT } = require("./config");
+const { MERCHANT_KEY, MERCHANT_SALT } = require("./config");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Enable CORS for all origins (you can restrict later if needed)
 app.use(cors());
 
 // PayU sends x-www-form-urlencoded data
@@ -26,52 +26,52 @@ app.get("/test", (req, res) => {
     `);
 });
 
-function sha512(data) {
-  return crypto.createHash("sha512").update(data).digest("hex");
-}
+app.post("/payment/generate-hash", async (req, res) => {
+  try {
+    const { hashName, hashString } = req.body;
 
-function generatePaymentHash({ txnid, amount, productinfo, firstname, email }) {
-  const hashString =
-    `${PAYU_KEY}|${txnid}|${amount}|${productinfo}|${firstname}|${email}` +
-    `|||||||||||${PAYU_SALT}`;
+    if (!hashName || !hashString) {
+      return res.status(400).json({
+        success: false,
+        error: "hashName and hashString are required",
+      });
+    }
 
-  return sha512(hashString);
-}
+    // PayU format: sha512(hashString + SALT)
+    const finalString = hashString + MERCHANT_SALT;
+    const generatedHash = sha512(finalString);
 
-function generateSdkHashes() {
-  return {
-    vas_for_mobile_sdk_hash: sha512(
-      `${PAYU_KEY}|vas_for_mobile_sdk|${PAYU_SALT}`
-    ),
+    return res.json({
+      success: true,
+      hash: { [hashName]: generatedHash },
+    });
+  } catch (e) {
+    return res.status(500).json({
+      success: false,
+      error: "Server error",
+    });
+  }
+});
 
-    payment_related_details_for_mobile_sdk_hash: sha512(
-      `${PAYU_KEY}|payment_related_details_for_mobile_sdk|${PAYU_SALT}`
-    ),
+app.post("/paymentpayment-hash", (req, res) => {
+  try {
+    const { txnid, amount, productinfo, firstname, email } = req.body;
 
-    get_merchant_ibibo_codes_hash: sha512(
-      `${PAYU_KEY}|get_merchant_ibibo_codes|${PAYU_SALT}`
-    ),
-  };
-}
+    if (!txnid || !amount || !productinfo || !firstname || !email) {
+      return res.status(400).json({ error: "Invalid parameters" });
+    }
 
-// Hash Logic
-app.post("/hash", (req, res) => {
-  const { txnid, amount, productinfo, firstname, email } = req.body;
+    const hashString = `${MERCHANT_KEY}|${txnid}|${amount}|${productinfo}|${firstname}|${email}|||||||||${MERCHANT_SALT}`;
 
-  const payment_hash = generatePaymentHash({
-    txnid,
-    amount,
-    productinfo,
-    firstname,
-    email,
-  });
+    const hash = sha512(hashString);
 
-  const sdkHashes = generateSdkHashes();
-
-  res.json({
-    payment_hash,
-    ...sdkHashes,
-  });
+    res.json({
+      success: true,
+      payment_hash: hash,
+    });
+  } catch (e) {
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 // SUCCESS URL
