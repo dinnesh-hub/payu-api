@@ -81,14 +81,16 @@ app.post("/payment/success", (req, res) => {
 
   // You will add verification logic later
 
-  res.send(`
-        <html>
-        <body>
-            <h2>Payment Success</h2>
-            <p>Your payment was successful.</p>
-        </body>
-        </html>
-    `);
+  // res.send(`
+  //       <html>
+  //       <body>
+  //           <h2>Payment Success</h2>
+  //           <p>Your payment was successful.</p>
+  //       </body>
+  //       </html>
+  //   `);
+
+  res.status(200).send("OK");
 });
 
 // FAILURE URL
