@@ -90,7 +90,7 @@ app.post("/payment/success", (req, res) => {
   //       </html>
   //   `);
 
-  res.status(200);
+  res.status(200).end();
 });
 
 // FAILURE URL
